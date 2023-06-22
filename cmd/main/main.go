@@ -1,8 +1,8 @@
 package main
 
 import (
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"net/http"
 
 	handlForum "project/internal/forum/delivery/http"
@@ -36,7 +36,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	db, errr := sqlx.Open("postgres", "user=brabra password=brabra dbname=brabra host=localhost port=5432 sslmode=disable")
+	db, errr := sqlx.Open("pgx", "user=brabra password=brabra dbname=brabra host=localhost port=5432 sslmode=disable")
 	if errr != nil {
 		logrus.Fatal(errr)
 	}
