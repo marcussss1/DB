@@ -8,9 +8,6 @@ CREATE UNLOGGED TABLE IF NOT EXISTS users (
     email    citext                     NOT NULL UNIQUE
 );
 
-CREATE INDEX IF NOT EXISTS user_nickname_compare ON users (nickname);
-CREATE INDEX IF NOT EXISTS user_all ON users (nickname, fullname, about, email);
-
 CREATE UNLOGGED TABLE IF NOT EXISTS forums (
     forum_id       bigserial,
     users_nickname citext NOT NULL REFERENCES users (nickname),
@@ -19,9 +16,6 @@ CREATE UNLOGGED TABLE IF NOT EXISTS forums (
     posts          int DEFAULT 0,
     threads        int DEFAULT 0
 );
-
-CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums (slug);
-CREATE INDEX IF NOT EXISTS forum_user_hash ON forums (users_nickname);
 
 CREATE UNLOGGED TABLE IF NOT EXISTS threads (
     thread_id bigserial PRIMARY KEY NOT NULL,
@@ -33,12 +27,6 @@ CREATE UNLOGGED TABLE IF NOT EXISTS threads (
     slug      citext,
     created   timestamp with time zone DEFAULT now()
 );
-
-CREATE INDEX IF NOT EXISTS th_slug_hash ON threads (slug);
-CREATE INDEX IF NOT EXISTS th_user_hash ON threads (author);
-CREATE INDEX IF NOT EXISTS th_created ON threads (created);
-CREATE INDEX IF NOT EXISTS th_forum ON threads (forum);
-CREATE INDEX IF NOT EXISTS th_forum_created ON threads (forum, created);
 
 CREATE UNLOGGED TABLE IF NOT EXISTS posts (
     post_id   bigserial PRIMARY KEY NOT NULL UNIQUE,
@@ -52,19 +40,11 @@ CREATE UNLOGGED TABLE IF NOT EXISTS posts (
     path      bigint[]                 DEFAULT ARRAY []::INTEGER[]
 );
 
-CREATE INDEX IF NOT EXISTS post_thread ON posts (thread_id);
-CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, post_id, (path[1]), parent);
-CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
-CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);
-
 CREATE UNLOGGED TABLE IF NOT EXISTS user_votes (
     nickname  citext NOT NULL REFERENCES users (nickname),
     thread_id int    NOT NULL REFERENCES threads (thread_id),
     voice     int    NOT NULL
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS votes_all ON user_votes (nickname, thread_id, voice);
-CREATE UNIQUE INDEX IF NOT EXISTS votes ON user_votes (nickname, thread_id);
 
 CREATE UNLOGGED TABLE IF NOT EXISTS user_forums (
     nickname citext COLLATE "ucs_basic" NOT NULL REFERENCES users (nickname),
@@ -74,11 +54,6 @@ CREATE UNLOGGED TABLE IF NOT EXISTS user_forums (
     email    citext,
     CONSTRAINT user_forum_key unique (nickname, forum)
 );
-
-CREATE INDEX IF NOT EXISTS users_to_forums_forum_compare ON user_forums (forum);
-CREATE INDEX IF NOT EXISTS users_to_forums_nickname_compare ON user_forums (nickname);
-CREATE INDEX IF NOT EXISTS users_to_forums_forum_nickname ON user_forums (forum, nickname);
-CREATE INDEX IF NOT EXISTS users_to_forum_nickname_forum ON user_forums (nickname, fullname, about, email);
 
 CREATE OR REPLACE FUNCTION function_path_update() RETURNS TRIGGER AS
 $$
@@ -197,15 +172,24 @@ CREATE TRIGGER update_users_forum
     FOR EACH ROW
 EXECUTE PROCEDURE function_update_user_forum();
 
-
-
-
-
-
-
-
-
-
-
+CREATE INDEX IF NOT EXISTS user_nickname_compare ON users (nickname);
+CREATE INDEX IF NOT EXISTS user_all ON users (nickname, fullname, about, email);
+CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums (slug);
+CREATE INDEX IF NOT EXISTS forum_user_hash ON forums (users_nickname);
+CREATE INDEX IF NOT EXISTS th_slug_hash ON threads (slug);
+CREATE INDEX IF NOT EXISTS th_user_hash ON threads (author);
+CREATE INDEX IF NOT EXISTS th_created ON threads (created);
+CREATE INDEX IF NOT EXISTS th_forum ON threads (forum);
+CREATE INDEX IF NOT EXISTS th_forum_created ON threads (forum, created);
+CREATE INDEX IF NOT EXISTS post_thread ON posts (thread_id);
+CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, post_id, (path[1]), parent);
+CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
+CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);
+CREATE UNIQUE INDEX IF NOT EXISTS votes_all ON user_votes (nickname, thread_id, voice);
+CREATE UNIQUE INDEX IF NOT EXISTS votes ON user_votes (nickname, thread_id);
+CREATE INDEX IF NOT EXISTS users_to_forums_forum_compare ON user_forums (forum);
+CREATE INDEX IF NOT EXISTS users_to_forums_nickname_compare ON user_forums (nickname);
+CREATE INDEX IF NOT EXISTS users_to_forums_forum_nickname ON user_forums (forum, nickname);
+CREATE INDEX IF NOT EXISTS users_to_forum_nickname_forum ON user_forums (nickname, fullname, about, email);
 
 VACUUM ANALYSE;
