@@ -1,0 +1,61 @@
+package models
+
+import (
+	"io"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
+
+	"project/internal/models"
+)
+
+//go:generate easyjson -all -disallow_unknown_fields -omit_empty updateprofile.go
+
+type ProfileUpdateRequest struct {
+	Nickname string
+	FullName string `json:"fullname"`
+	About    string `json:"about"`
+	Email    string `json:"email"`
+}
+
+func NewProfileUpdateRequest() *ProfileUpdateRequest {
+	return &ProfileUpdateRequest{}
+}
+
+func (req *ProfileUpdateRequest) Bind(r *http.Request) error {
+	vars := mux.Vars(r)
+
+	req.Nickname = vars["nickname"]
+
+	body, _ := io.ReadAll(r.Body)
+
+	easyjson.Unmarshal(body, req)
+
+	return nil
+}
+
+func (req *ProfileUpdateRequest) GetUser() *models.User {
+	return &models.User{
+		Nickname: req.Nickname,
+		FullName: req.FullName,
+		About:    req.About,
+		Email:    req.Email,
+	}
+}
+
+type ProfileUpdateResponse struct {
+	Nickname string `json:"nickname"`
+	FullName string `json:"fullname"`
+	About    string `json:"about"`
+	Email    string `json:"email"`
+}
+
+func NewProfileUpdateResponse(user *models.User) *ProfileUpdateResponse {
+	return &ProfileUpdateResponse{
+		Nickname: user.Nickname,
+		FullName: user.FullName,
+		About:    user.About,
+		Email:    user.Email,
+	}
+}
