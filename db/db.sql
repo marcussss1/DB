@@ -159,7 +159,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER update_user_forum
     AFTER INSERT
     ON threads
@@ -172,7 +171,6 @@ CREATE TRIGGER update_users_forum
     FOR EACH ROW
 EXECUTE PROCEDURE function_update_user_forum();
 
-CREATE INDEX IF NOT EXISTS user_nickname ON users (nickname);
 CREATE INDEX IF NOT EXISTS user_all ON users (nickname, fullname, about, email);
 CREATE INDEX IF NOT EXISTS forum_user ON forums (users_nickname);
 CREATE INDEX IF NOT EXISTS th_slug ON threads (slug);
