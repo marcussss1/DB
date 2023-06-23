@@ -86,6 +86,7 @@ CREATE TRIGGER insert_votes
     FOR EACH ROW
 EXECUTE PROCEDURE function_insert_votes_into_threads();
 
+
 CREATE OR REPLACE FUNCTION function_update_votes_in_threads()
     RETURNS TRIGGER AS
 $$
@@ -171,29 +172,29 @@ CREATE TRIGGER update_users_forum
     FOR EACH ROW
 EXECUTE PROCEDURE function_update_user_forum();
 
-CREATE INDEX IF NOT EXISTS all_users_forum ON users_forum (nickname, fullname, about, email);
-CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums USING hash (slug);
-CREATE INDEX IF NOT EXISTS forum_user_hash ON forums USING hash (users_nickname);
+CREATE INDEX IF NOT EXISTS user_nickname  ON users  USING HASH (nickname);
+CREATE INDEX IF NOT EXISTS user_email     ON users  USING HASH (email);
 
-CREATE INDEX IF NOT EXISTS users_to_forums_forum_compare ON user_forums (forum);
-CREATE INDEX IF NOT EXISTS users_to_forums_nickname_compare ON user_forums (nickname);
-CREATE INDEX IF NOT EXISTS users_to_forums_forum_nickname ON user_forums (forum, nickname);
-CREATE INDEX IF NOT EXISTS users_to_forum_nickname_forum ON user_forums (nickname, fullname, about, email);
+CREATE INDEX IF NOT EXISTS forum_slug     ON forums  USING HASH (slug);
 
-CREATE INDEX IF NOT EXISTS user_all ON users (nickname, fullname, about, email);
+CREATE INDEX IF NOT EXISTS thread_slug       ON threads USING HASH (slug);
+CREATE INDEX IF NOT EXISTS thread_forum      ON threads USING HASH (forum);
+CREATE INDEX IF NOT EXISTS thread_date       ON threads (created);
+CREATE INDEX IF NOT EXISTS thread_forum_date ON threads (forum, created);
 
-CREATE INDEX IF NOT EXISTS post_thread ON posts USING hash (thread_id);
-CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, post_id, (path[1]), parent);
-CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
-CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);
+CREATE INDEX IF NOT EXISTS post_id_path   ON posts   (post_id, (path[1]));
+CREATE INDEX IF NOT EXISTS post_path1     ON posts   ((path[1]));
+CREATE INDEX IF NOT EXISTS post_thread_id ON posts   (thread_id, post_id);
+CREATE INDEX IF NOT EXISTS post_thread    ON posts   (thread_id);
+CREATE INDEX IF NOT EXISTS post_thread_id_path1_parent ON posts (thread_id, post_id, (path[1]), parent);
+CREATE INDEX IF NOT EXISTS post_thread_path_id         ON posts (thread_id, path, post_id);
+CREATE INDEX IF NOT EXISTS path_post ON posts (path);
 
-CREATE UNIQUE INDEX IF NOT EXISTS votes_all ON user_votes (nickname, thread_id);
-CREATE UNIQUE INDEX IF NOT EXISTS votes ON user_votes (nickname, thread_id);
+CREATE UNIQUE INDEX IF NOT EXISTS vote_unique ON user_votes (nickname, thread_id);
 
-CREATE INDEX IF NOT EXISTS th_slug_hash ON threads USING hash (slug);
-CREATE INDEX IF NOT EXISTS th_user_hash ON threads USING hash (author);
-CREATE INDEX IF NOT EXISTS th_created ON threads (created);
-CREATE INDEX IF NOT EXISTS th_forum ON threads USING hash (forum);
-CREATE INDEX IF NOT EXISTS th_forum_created ON threads (forum, created);
+CREATE UNIQUE INDEX IF NOT EXISTS  forum_users_unique ON user_forums (forum, nickname);
+CREATE INDEX IF NOT EXISTS all_users_forum ON user_forums (nickname, fullname, about, email);
+CREATE INDEX IF NOT EXISTS nickname_users_forum ON user_forums USING HASH (nickname);
+CREATE INDEX IF NOT EXISTS fullname_about_email_users_forum ON user_forums (fullname, about, email);
 
 VACUUM ANALYSE;

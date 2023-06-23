@@ -2,6 +2,7 @@ package main
 
 import (
 	//_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"net/http"
@@ -41,6 +42,9 @@ func main() {
 	if errr != nil {
 		logrus.Fatal(errr)
 	}
+
+	db.SetMaxIdleConns(100)
+	db.SetMaxOpenConns(100)
 
 	forumStorage := repoForum.NewForumPostgres(db)
 	userStorage := repoUser.NewUserPostgres(db)
