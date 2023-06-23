@@ -171,6 +171,7 @@ CREATE TRIGGER update_users_forum
     FOR EACH ROW
 EXECUTE PROCEDURE function_update_user_forum();
 
+CREATE INDEX IF NOT EXISTS all_users_forum ON users_forum (nickname, fullname, about, email);
 CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums USING hash (slug);
 CREATE INDEX IF NOT EXISTS forum_user_hash ON forums USING hash (users_nickname);
 
@@ -186,7 +187,7 @@ CREATE INDEX IF NOT EXISTS post_parent ON posts (thread_id, post_id, (path[1]), 
 CREATE INDEX IF NOT EXISTS post_path_1_path ON posts ((path[1]), path);
 CREATE INDEX IF NOT EXISTS post_thread_path ON posts (thread_id, path);
 
-CREATE UNIQUE INDEX IF NOT EXISTS votes_all ON user_votes (nickname, thread_id, voice);
+CREATE UNIQUE INDEX IF NOT EXISTS votes_all ON user_votes (nickname, thread_id);
 CREATE UNIQUE INDEX IF NOT EXISTS votes ON user_votes (nickname, thread_id);
 
 CREATE INDEX IF NOT EXISTS th_slug_hash ON threads USING hash (slug);
