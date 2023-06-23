@@ -24,6 +24,10 @@ func NewForumGetThreadsRequest() *ForumGetThreadsRequest {
 }
 
 func (req *ForumGetThreadsRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.Slug = vars["slug"]
@@ -34,14 +38,34 @@ func (req *ForumGetThreadsRequest) Bind(r *http.Request) error {
 
 	if param != "" {
 		value, _ := strconv.Atoi(param)
+		// if err != nil {
+		//	return pkg.ErrConvertQueryType
+		// }
+
 		req.Limit = int64(value)
 	} else {
 		req.Limit = 100
 	}
 
+	// if err != nil {
+	//	return pkg.ErrConvertQueryType
+	// }
+
 	req.Since = r.FormValue("since")
+	// if req.Since == "" {
+	//	return pkg.ErrBadRequestParamsEmptyRequiredFields
+	// }
 
 	param = r.FormValue("desc")
+	// if param == "" {
+	//	return pkg.ErrBadRequestParamsEmptyRequiredFields
+	// } else if param == "true" {
+	//	req.Desc = true
+	// } else if param == "false" {
+	//	req.Desc = false
+	// } else {
+	//	return pkg.ErrBadRequestParams
+	// }
 
 	if param == "true" {
 		req.Desc = true

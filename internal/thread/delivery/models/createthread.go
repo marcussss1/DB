@@ -27,9 +27,34 @@ func NewForumCreateThreadRequest() *ForumCreateThreadRequest {
 }
 
 func (req *ForumCreateThreadRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") == "" {
+	//	return pkg.ErrContentTypeUndefined
+	// }
+	//
+	// if r.Header.Get("Content-Type") != pkg.ContentTypeJSON {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	body, _ := io.ReadAll(r.Body)
+	// if err != nil {
+	//	return pkg.ErrBadBodyRequest
+	// }
+	// defer func() {
+	//	err = r.Body.Close()
+	//	if err != nil {
+	//		logrus.Error(err)
+	//	}
+	// }()
+
+	// if len(body) == 0 {
+	//	return pkg.ErrEmptyBody
+	// }
 
 	easyjson.Unmarshal(body, req)
+	// err = easyjson.Unmarshal(body, req)
+	// if err != nil {
+	//	return pkg.ErrJSONUnexpectedEnd
+	// }
 
 	vars := mux.Vars(r)
 

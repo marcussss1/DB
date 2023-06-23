@@ -1,8 +1,10 @@
 package models
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
+
 	"project/internal/models"
 )
 
@@ -17,6 +19,10 @@ func NewForumGetDetailsRequest() *ForumGetDetailsRequest {
 }
 
 func (req *ForumGetDetailsRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.Slug = vars["slug"]

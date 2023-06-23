@@ -1,10 +1,10 @@
 package main
 
 import (
-	//_ "github.com/jackc/pgx/stdlib"
+	"database/sql"
 	_ "github.com/jackc/pgx/stdlib"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"log"
 	"net/http"
 
 	handlForum "project/internal/forum/delivery/http"
@@ -38,20 +38,25 @@ func main() {
 
 	router := mux.NewRouter()
 
-	db, errr := sqlx.Open("postgres", "user=brabra password=brabra dbname=brabra host=localhost port=5432 sslmode=disable")
-	if errr != nil {
-		logrus.Fatal(errr)
+	conn, err := sql.Open("pgx", "user=brabra password=brabra dbname=brabra host=localhost port=5432 sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	db.SetMaxIdleConns(100)
-	db.SetMaxOpenConns(100)
+	conn.SetMaxOpenConns(100)
+	conn.SetMaxIdleConns(100)
 
-	forumStorage := repoForum.NewForumPostgres(db)
-	userStorage := repoUser.NewUserPostgres(db)
-	postStorage := repoPost.NewPostPostgres(db)
-	threadStorage := repoThread.NewThreadPostgres(db)
-	voteStorage := repoVote.NewVotePostgres(db)
-	serviceStorage := repoService.NewServicePostgres(db)
+	err = conn.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	forumStorage := repoForum.NewForumPostgres(conn)
+	userStorage := repoUser.NewUserPostgres(conn)
+	postStorage := repoPost.NewPostPostgres(conn)
+	threadStorage := repoThread.NewThreadPostgres(conn)
+	voteStorage := repoVote.NewVotePostgres(conn)
+	serviceStorage := repoService.NewServicePostgres(conn)
 
 	forumService := usecaseForum.NewForumService(forumStorage, userStorage)
 	userService := usecaseUser.NewUserService(userStorage)
@@ -93,7 +98,7 @@ func main() {
 
 	server := pkg.NewServerHTTP(&logger)
 
-	err := server.Launch(router)
+	err = server.Launch(router)
 	if err != nil {
 		logrus.Fatal(err)
 	}

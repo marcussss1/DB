@@ -25,6 +25,10 @@ func NewThreadGetPostsRequest() *ThreadGetPostsRequest {
 }
 
 func (req *ThreadGetPostsRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.SlugOrID = vars["slug_or_id"]
@@ -34,20 +38,44 @@ func (req *ThreadGetPostsRequest) Bind(r *http.Request) error {
 	param = r.FormValue("limit")
 	if param != "" {
 		value, _ := strconv.Atoi(param)
+		// if err != nil {
+		//	return pkg.ErrConvertQueryType
+		// }
+
 		req.Limit = int64(value)
 	} else {
 		req.Limit = 100
 	}
 
+	// if err != nil {
+	//	return pkg.ErrConvertQueryType
+	// }
+
 	param = r.FormValue("since")
+	// if req.Since == "" {
+	//	return pkg.ErrBadRequestParamsEmptyRequiredFields
+	// }
 	if param != "" {
 		value, _ := strconv.Atoi(param)
+		// if err != nil {
+		//	return pkg.ErrConvertQueryType
+		// }
+
 		req.Since = int64(value)
 	} else {
 		req.Since = -1
 	}
 
 	param = r.FormValue("desc")
+	// if param == "" {
+	//	return pkg.ErrBadRequestParamsEmptyRequiredFields
+	// } else if param == "true" {
+	//	req.Desc = true
+	// } else if param == "false" {
+	//	req.Desc = false
+	// } else {
+	//	return pkg.ErrBadRequestParams
+	// }
 
 	if param == "true" {
 		req.Desc = true

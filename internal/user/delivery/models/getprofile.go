@@ -19,6 +19,14 @@ func NewProfileGetRequest() *ProfileGetRequest {
 }
 
 func (req *ProfileGetRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") == "" {
+	//	return pkg.ErrContentTypeUndefined
+	// }
+	//
+	// if r.Header.Get("Content-Type") != pkg.ContentTypeJSON {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.Nickname = vars["nickname"]

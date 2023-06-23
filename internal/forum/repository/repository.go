@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 
 	"github.com/pkg/errors"
 
 	"project/internal/models"
 	"project/internal/pkg"
+	"project/internal/pkg/sqltools"
 )
 
 type ForumRepository interface {
@@ -21,21 +21,21 @@ type ForumRepository interface {
 }
 
 type forumPostgres struct {
-	db *sqlx.DB
+	conn *sql.DB
 }
 
-func NewForumPostgres(db *sqlx.DB) ForumRepository {
+func NewForumPostgres(conn *sql.DB) ForumRepository {
 	return &forumPostgres{
-		db,
+		conn,
 	}
 }
 
 func (f forumPostgres) CheckExistForum(ctx context.Context, forum *models.Forum) (bool, error) {
-	var res bool
+	res := false
 
-	row := f.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM forums WHERE slug = $1);`, forum.Slug)
+	row := f.conn.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM forums WHERE slug = $1);`, forum.Slug)
 	if row.Err() != nil {
-		return false, pkg.ErrWorkDatabase
+		return false, row.Err()
 	}
 
 	err := row.Scan(&res)
@@ -47,27 +47,29 @@ func (f forumPostgres) CheckExistForum(ctx context.Context, forum *models.Forum)
 }
 
 func (f forumPostgres) CreateForum(ctx context.Context, forum *models.Forum) (*models.Forum, error) {
-	row := f.db.QueryRowContext(ctx, `INSERT INTO forums(title, users_nickname, slug)
-		VALUES ($1, $2, $3);`, forum.Title, forum.User, forum.Slug)
-	if row.Err() != nil {
-		return nil, pkg.ErrWorkDatabase
+	errMain := sqltools.RunTxOnConn(ctx, pkg.TxInsertOptions, f.conn, func(ctx context.Context, tx *sql.Tx) error {
+		row := tx.QueryRowContext(ctx, `INSERT INTO forums(title, users_nickname, slug)
+			VALUES ($1, $2, $3);`, forum.Title, forum.User, forum.Slug)
+		if row.Err() != nil {
+			return row.Err()
+		}
 
-	}
+		return nil
+	})
 
-	return forum, nil
+	return forum, errMain
 }
 
 func (f forumPostgres) GetDetailsForumBySlug(ctx context.Context, forum *models.Forum) (*models.Forum, error) {
-	row := f.db.QueryRowContext(ctx, `SELECT title, users_nickname, posts, threads, slug
-		FROM forums
-		WHERE slug = $1`, forum.Slug)
+	row := f.conn.QueryRowContext(ctx, `SELECT title, users_nickname, posts, threads, slug
+			FROM forums
+			WHERE slug = $1`, forum.Slug)
 	if row.Err() != nil {
 		if errors.Is(row.Err(), sql.ErrNoRows) {
 			return nil, pkg.ErrSuchForumNotFound
 		}
 
-		return nil, pkg.ErrWorkDatabase
-
+		return nil, row.Err()
 	}
 
 	err := row.Scan(
@@ -81,7 +83,7 @@ func (f forumPostgres) GetDetailsForumBySlug(ctx context.Context, forum *models.
 			return nil, pkg.ErrSuchUserNotFound
 		}
 
-		return nil, pkg.ErrWorkDatabase
+		return nil, err
 	}
 
 	return forum, nil
@@ -90,7 +92,7 @@ func (f forumPostgres) GetDetailsForumBySlug(ctx context.Context, forum *models.
 func (f forumPostgres) GetThreads(ctx context.Context, forum *models.Forum, params *pkg.GetThreadsParams) ([]*models.Thread, error) {
 	query := `SELECT t.thread_id, t.title, t.author, t.forum, t.message, t.votes, t.slug, t.created
 		FROM threads AS t
-    	LEFT JOIN forums f ON t.forum = f.slug
+        	LEFT JOIN forums f ON t.forum = f.slug
 		WHERE f.slug = $1 `
 
 	orderBy := "ORDER BY t.created "
@@ -128,14 +130,13 @@ func (f forumPostgres) GetThreads(ctx context.Context, forum *models.Forum, para
 
 	res := make([]*models.Thread, 0)
 
-	rows, err = f.db.QueryContext(ctx, query, values...)
+	rows, err = f.conn.QueryContext(ctx, query, values...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, pkg.ErrSuchThreadNotFound
 		}
 
-		return nil, pkg.ErrWorkDatabase
-
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -186,13 +187,13 @@ func (f forumPostgres) GetUsers(ctx context.Context, forum *models.Forum, params
 
 	res := make([]*models.User, 0)
 
-	rows, err = f.db.QueryContext(ctx, query, forum.Slug)
+	rows, err = f.conn.QueryContext(ctx, query, forum.Slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, pkg.ErrSuchThreadNotFound
 		}
 
-		return nil, pkg.ErrWorkDatabase
+		return nil, err
 	}
 	defer rows.Close()
 

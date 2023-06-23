@@ -23,17 +23,29 @@ func NewPostGetDetailsRequest() *PostGetDetailsRequest {
 }
 
 func (req *PostGetDetailsRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	param := vars["id"]
 
 	value, _ := strconv.Atoi(param)
+	// if err != nil {
+	//	return pkg.ErrBadRequestParams
+	// }
 
 	req.ID = int64(value)
 
 	param = r.URL.Query().Get("related")
 
 	req.Related = strings.Split(param, ",")
+	// for _, arg := range args {
+	//	if arg != "user" && arg != "forum" && arg != "thread" {
+	//		return pkg.ErrBadRequestParams
+	//	}
+	// }
 
 	return nil
 }

@@ -25,13 +25,34 @@ func NewVoteRequest() *VoteRequest {
 }
 
 func (req *VoteRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.SlugOrID = vars["slug_or_id"]
 
 	body, _ := io.ReadAll(r.Body)
+	// if err != nil {
+	//	return pkg.ErrBadBodyRequest
+	// }
+	// defer func() {
+	//	err = r.Body.Close()
+	//	if err != nil {
+	//		logrus.Error(err)
+	//	}
+	// }()
+
+	// if len(body) == 0 {
+	//	return pkg.ErrEmptyBody
+	// }
 
 	easyjson.Unmarshal(body, req)
+	// err = easyjson.Unmarshal(body, req)
+	// if err != nil {
+	//	return pkg.ErrJSONUnexpectedEnd
+	// }
 
 	return nil
 }

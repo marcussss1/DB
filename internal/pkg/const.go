@@ -17,11 +17,6 @@ var RequestIDKey ContextKeyType = RequestID
 
 var LoggerKey ContextKeyType = "logger"
 
-var TxDefaultOptions = &sql.TxOptions{
-	Isolation: sql.LevelDefault,
-	ReadOnly:  true,
-}
-
 var TxInsertOptions = &sql.TxOptions{
 	Isolation: sql.LevelDefault,
 	ReadOnly:  false,

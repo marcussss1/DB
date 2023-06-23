@@ -20,6 +20,10 @@ func NewThreadGetDetailsRequest() *ThreadGetDetailsRequest {
 }
 
 func (req *ThreadGetDetailsRequest) Bind(r *http.Request) error {
+	// if r.Header.Get("Content-Type") != "" {
+	//	return pkg.ErrUnsupportedMediaType
+	// }
+
 	vars := mux.Vars(r)
 
 	req.SlugOrID = vars["slug_or_id"]
